@@ -65,8 +65,8 @@ async def _search_tool(
     search_results = await search_client.search(
         search_text=args['query'], 
         query_type="semantic",
-        semantic_configuration_name=semantic_configuration,
-        top=5,
+        semantic_configuration_name="semantic_configuration", #semantic_configuration,
+        top=10,
         vector_queries=vector_queries,
         select=", ".join([identifier_field, content_field])
     )

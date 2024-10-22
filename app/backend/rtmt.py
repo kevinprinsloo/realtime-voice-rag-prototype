@@ -60,9 +60,10 @@ class RTMiddleTier:
     _tools_pending = {}
     _token_provider = None
 
-    def __init__(self, endpoint: str, deployment: str, credentials: AzureKeyCredential | DefaultAzureCredential):
+    def __init__(self, endpoint: str, deployment: str, credentials: AzureKeyCredential | DefaultAzureCredential, voice: Optional[str] = None, instructions: Optional[str] = None):
         self.endpoint = endpoint
         self.deployment = deployment
+        self.voice = voice
         if isinstance(credentials, AzureKeyCredential):
             self.key = credentials.key
         else:
@@ -161,6 +162,8 @@ class RTMiddleTier:
                         session["max_response_output_tokens"] = self.max_tokens
                     if self.disable_audio is not None:
                         session["disable_audio"] = self.disable_audio
+                    if self.voice is not None:
+                        session["voice"] = self.voice
                     session["tool_choice"] = "auto" if len(self.tools) > 0 else "none"
                     session["tools"] = [tool.schema for tool in self.tools.values()]
                     updated_message = json.dumps(message)
@@ -169,7 +172,11 @@ class RTMiddleTier:
 
     async def _forward_messages(self, ws: web.WebSocketResponse):
         async with aiohttp.ClientSession(base_url=self.endpoint) as session:
-            params = { "api-version": "2024-10-01-preview", "deployment": self.deployment }
+            params = {
+                "api-version": "2024-10-01-preview",
+                "deployment": self.deployment,
+                "voice": self.voice,  # Pass voice when creating WebSocket
+                }
             headers = {}
             if "x-ms-client-request-id" in ws.headers:
                 headers["x-ms-client-request-id"] = ws.headers["x-ms-client-request-id"]
